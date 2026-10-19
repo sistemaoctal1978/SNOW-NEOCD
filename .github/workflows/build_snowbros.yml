@@ -11,11 +11,11 @@ jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 60
-    
+
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
-      
+
     - name: Setup dependencies
       run: |
         sudo apt-get update
@@ -24,22 +24,22 @@ jobs:
           libx11-dev libxext-dev libxinerama-dev libxi-dev \
           libxrandr-dev libxrender-dev libudev-dev libdbus-1-dev \
           libfreetype6-dev gcc g++ make pkg-config python3
-    
+
     - name: Clone MAME 0.268
       run: |
         git clone --depth 1 --branch mame0268 https://github.com/mamedev/mame.git mame
         cd mame
-        
+
     - name: Apply Snow Bros patches
       run: |
         cd mame
         # Disable problematic file
         mv src/mame/kaneko/kan_pand_patch.cpp src/mame/kaneko/kan_pand_patch.cpp.disabled 2>/dev/null || true
-        
+
         # Fix kan_pand.h - remove duplicate constructors
         sed -i '/template <typename T> kaneko_pandora_device(const machine_config &mconfig, const char \*tag, device_t \*owner, u32 clock, T &&palette_tag, const gfx_decode_entry \*gfxinfo)/,/^  \}/d' src/mame/kaneko/kan_pand.h
         sed -i '/template <typename T> kaneko_pandora_device(const machine_config &mconfig, const char \*tag, device_t \*owner, T &&palette_tag, const gfx_decode_entry \*gfxinfo)/,/^  \}/d' src/mame/kaneko/kan_pand.h
-        
+
         # Apply snowbros_mvs driver patch
         cat > /tmp/snowbros.patch << 'PATCHEOF'
 --- a/src/mame/kaneko/snowbros.cpp
@@ -51,8 +51,8 @@ jobs:
 +//	ROM_LOAD( "ch2",          0x40000, 0x20000, CRC(fdaa634c) SHA1(1271c74df7da7596caf67caae3c51b4c163a49f4) )
 +//	ROM_LOAD( "ch3",          0x60000, 0x20000, CRC(34024aef) SHA1(003a9b9ee3aaab3d787894d3d4126d372b19d2a8) )
  ROM_END
- 
- 
+
+
 +// Test driver for MVS port - accepts any CRC for ROMs (BAD_DUMP flag)
 +ROM_START( snowbros_mvs )
 +	ROM_REGION( 0x40000, "maincpu", 0 )
@@ -65,15 +65,15 @@ jobs:
 +	ROM_REGION( 0x200000, "gfx1", 0 )  /* 2MB for MVS port (16384 tiles) */
 +	ROM_LOAD( "sbros-1.41",   0x00000, 0x200000, BAD_DUMP CRC(16f06b3a) SHA1(c64d3b2d32f0f0fcf1d8c5f02f8589d59ddfd428) )
 +ROM_END
-+
-+
+
+
  ROM_START( snowbrosa )
  	ROM_REGION( 0x40000, "maincpu", 0 )
  	ROM_LOAD16_BYTE( "sbros-3a.5",  0x00000, 0x20000, CRC(10cb37e1) SHA1(786be4640f8df2c81a32decc189ea7657ace00c6) )
 @@ -3345,6 +3370,17 @@
  	MACHINE_SUPPORTS_SAVE )
- 
- 
+
+
 +GAME( 1990, snowbros_mvs, snowbros, snowbros,    snowbros,  snowbros_pandora_state,
 +	empty_init,     ROT0, "Toaplan (MVS Port Test)",    "Snow Bros. - Nick & Tom (MVS Port Test)",
 +	MACHINE_SUPPORTS_SAVE )
@@ -84,41 +84,40 @@ jobs:
  	MACHINE_SUPPORTS_SAVE )
 PATCHEOF
         patch -p1 < /tmp/snowbros.patch || true
-        
+
     - name: Copy C ROM 2MB
       run: |
         cd mame
         mkdir -p roms/snowbros_mvs
         cp ${{ github.workspace }}/assets/sbros-1.41.full roms/snowbros_mvs/sbros-1.41
-        
+
     - name: Copy NeoGeo CD assets
       run: |
         cd mame
         cp ${{ github.workspace }}/assets/snowbros.cue .
         cp ${{ github.workspace }}/assets/snowbros.bin .
         cp ${{ github.workspace }}/assets/track*.wav .
-        
+
     - name: Build MAME (neogeo subtarget)
       run: |
         cd mame
         make SUBTARGET=neogeo REGENIE=1 -j$(nproc) 2>&1 | tee build.log
-        
+
     - name: Verify build
       run: |
         cd mame
         ./mame -listxml | grep snowbros_mvs
-        
+
     - name: Upload MAME binary
       uses: actions/upload-artifact@v4
       with:
         name: mame-snowbros-mvs
         path: mame/mame
         retention-days: 30
-        
+
     - name: Upload build log
       uses: actions/upload-artifact@v4
       with:
         name: build-log
         path: mame/build.log
         retention-days: 30
-
