@@ -1,0 +1,40 @@
+--- a/src/mame/kaneko/snowbros.cpp
++++ b/src/mame/kaneko/snowbros.cpp
+@@ -2398,6 +2398,31 @@
+ 	/* where were these from, a bootleg? */
+ //	ROM_LOAD( "ch0",          0x00000, 0x20000, CRC(36d84dfe) SHA1(5d45a750220930bc409de30f19282bb143fbf94f) )
+ //	ROM_LOAD( "ch1",          0x20000, 0x20000, CRC(76347256) SHA1(48ec03965905adaba5e50eb3e42a2813f7883bb4) )
++//	ROM_LOAD( "ch2",          0x40000, 0x20000, CRC(fdaa634c) SHA1(1271c74df7da7596caf67caae3c51b4c163a49f4) )
++//	ROM_LOAD( "ch3",          0x60000, 0x20000, CRC(34024aef) SHA1(003a9b9ee3aaab3d787894d3d4126d372b19d2a8) )
+ ROM_END
+
+
++// Test driver for MVS port - accepts any CRC for ROMs (BAD_DUMP flag)
++ROM_START( snowbros_mvs )
++	ROM_REGION( 0x40000, "maincpu", 0 )
++	ROM_LOAD16_BYTE( "sn6.bin",  0x00000, 0x20000, BAD_DUMP CRC(4899ddcf) SHA1(47d750d3022a80e47ffabe47566bb2556cc8d477) )
++	ROM_LOAD16_BYTE( "sn5.bin",  0x00001, 0x20000, BAD_DUMP CRC(ad310d3f) SHA1(f39295b38d99087dbb9c5b00bf9cb963337a50e2) )
++
++	ROM_REGION( 0x8000, "soundcpu", 0 )
++	ROM_LOAD( "sbros-4.29",   0x0000, 0x8000, BAD_DUMP CRC(e6eab4e4) SHA1(d08187d03b21192e188784cb840a37a7bdb5ad32) )
++
++	ROM_REGION( 0x200000, "gfx1", 0 )
++	ROM_LOAD( "sbros-1.41",   0x00000, 0x200000, BAD_DUMP CRC(16f06b3a) SHA1(c64d3b2d32f0f0fcf1d8c5f02f8589d59ddfd428) )
++ROM_END
+
+
+ ROM_START( snowbrosa )
+ 	ROM_REGION( 0x40000, "maincpu", 0 )
+ 	ROM_LOAD16_BYTE( "sbros-3a.5",  0x00000, 0x20000, CRC(10cb37e1) SHA1(786be4640f8df2c81a32decc189ea7657ace00c6) )
+@@ -3345,6 +3370,17 @@
+ 	MACHINE_SUPPORTS_SAVE )
+
+
++GAME( 1990, snowbros_mvs, snowbros, snowbros,    snowbros,  snowbros_pandora_state,
++	empty_init,     ROT0, "Toaplan (MVS Port Test)",    "Snow Bros. - Nick & Tom (MVS Port Test)",
++	MACHINE_SUPPORTS_SAVE )
++
++
+ GAME( 1990, snowbrosa,  snowbros, snowbros,    snowbros,  snowbros_pandora_state,
+ 	empty_init,     ROT0, "Toaplan",                        "Snow Bros. - Nick & Tom (set 2)",
+ 	MACHINE_SUPPORTS_SAVE )
