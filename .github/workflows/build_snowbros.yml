@@ -121,3 +121,4 @@ PATCHEOF
         name: build-log
         path: mame/build.log
         retention-days: 30
+
