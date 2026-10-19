@@ -10,7 +10,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 90
 
     steps:
     - name: Checkout repository
@@ -19,28 +19,24 @@ jobs:
     - name: Setup dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y git build-essential python3 libsdl2-dev \
-          liblua5.3-dev libfontconfig1-dev libasound2-dev libpulse-dev \
-          libx11-dev libxext-dev libxinerama-dev libxi-dev \
-          libxrandr-dev libxrender-dev libudev-dev libdbus-1-dev \
-          libfreetype6-dev gcc g++ make pkg-config python3
+        sudo apt-get install -y git build-essential python3 libsdl2-dev liblua5.3-dev libfontconfig1-dev libasound2-dev libpulse-dev libx11-dev libxext-dev libxinerama-dev libxi-dev libxrandr-dev libxrender-dev libudev-dev libdbus-1-dev libfreetype6-dev gcc g++ make pkg-config python3
 
     - name: Clone MAME 0.268
       run: |
         git clone --depth 1 --branch mame0268 https://github.com/mamedev/mame.git mame
-        cd mame
 
-    - name: Apply Snow Bros patches
+    - name: Prepare Snow Bros patch
       run: |
         cd mame
         # Disable problematic file
         mv src/mame/kaneko/kan_pand_patch.cpp src/mame/kaneko/kan_pand_patch.cpp.disabled 2>/dev/null || true
-
-        # Fix kan_pand.h - remove duplicate constructors
+        # Fix kan_pand.h
         sed -i '/template <typename T> kaneko_pandora_device(const machine_config &mconfig, const char \*tag, device_t \*owner, u32 clock, T &&palette_tag, const gfx_decode_entry \*gfxinfo)/,/^  \}/d' src/mame/kaneko/kan_pand.h
         sed -i '/template <typename T> kaneko_pandora_device(const machine_config &mconfig, const char \*tag, device_t \*owner, T &&palette_tag, const gfx_decode_entry \*gfxinfo)/,/^  \}/d' src/mame/kaneko/kan_pand.h
 
-        # Apply snowbros_mvs driver patch
+    - name: Apply snowbros_mvs driver patch
+      run: |
+        cd mame
         cat > /tmp/snowbros.patch << 'PATCHEOF'
 --- a/src/mame/kaneko/snowbros.cpp
 +++ b/src/mame/kaneko/snowbros.cpp
@@ -62,7 +58,7 @@ jobs:
 +	ROM_REGION( 0x8000, "soundcpu", 0 )
 +	ROM_LOAD( "sbros-4.29",   0x0000, 0x8000, BAD_DUMP CRC(e6eab4e4) SHA1(d08187d03b21192e188784cb840a37a7bdb5ad32) )
 +
-+	ROM_REGION( 0x200000, "gfx1", 0 )  /* 2MB for MVS port (16384 tiles) */
++	ROM_REGION( 0x200000, "gfx1", 0 )
 +	ROM_LOAD( "sbros-1.41",   0x00000, 0x200000, BAD_DUMP CRC(16f06b3a) SHA1(c64d3b2d32f0f0fcf1d8c5f02f8589d59ddfd428) )
 +ROM_END
 
@@ -90,13 +86,6 @@ PATCHEOF
         cd mame
         mkdir -p roms/snowbros_mvs
         cp ${{ github.workspace }}/assets/sbros-1.41.full roms/snowbros_mvs/sbros-1.41
-
-    - name: Copy NeoGeo CD assets
-      run: |
-        cd mame
-        cp ${{ github.workspace }}/assets/snowbros.cue .
-        cp ${{ github.workspace }}/assets/snowbros.bin .
-        cp ${{ github.workspace }}/assets/track*.wav .
 
     - name: Build MAME (neogeo subtarget)
       run: |
