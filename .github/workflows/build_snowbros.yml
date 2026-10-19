@@ -46,10 +46,10 @@ jobs:
         mkdir -p roms/snowbros_mvs
         cp ${{ github.workspace }}/assets/sbros-1.41.full roms/snowbros_mvs/sbros-1.41
 
-    - name: Build MAME (neogeo subtarget)
+    - name: Build MAME (neogeo driver only)
       run: |
         cd mame
-        make SUBTARGET=neogeo REGENIE=1 -j$(nproc) 2>&1 | tee build.log
+        make SOURCES=src/mame/drivers/neogeo.cpp REGENIE=1 -j$(nproc) 2>&1 | tee build.log
 
     - name: Verify build
       run: |
