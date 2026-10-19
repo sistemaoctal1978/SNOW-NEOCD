@@ -37,6 +37,8 @@ jobs:
       run: |
         cd mame
         patch -p1 < ${{ github.workspace }}/snowbros.patch || true
+        echo "=== Patch result ==="
+        grep -n "snowbros_mvs" src/mame/kaneko/snowbros.cpp || echo "NOT FOUND"
 
     - name: Copy C ROM 2MB
       run: |
@@ -52,9 +54,10 @@ jobs:
     - name: Verify build
       run: |
         cd mame
-        ./mame -listxml | grep snowbros_mvs
+        ./mame -listxml | grep -i snowbros_mvs || echo "DRIVER NOT FOUND"
 
     - name: Upload MAME binary
+      if: success()
       uses: actions/upload-artifact@v4
       with:
         name: mame-snowbros-mvs
@@ -62,6 +65,7 @@ jobs:
         retention-days: 30
 
     - name: Upload build log
+      if: always()
       uses: actions/upload-artifact@v4
       with:
         name: build-log
