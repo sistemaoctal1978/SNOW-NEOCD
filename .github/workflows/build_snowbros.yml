@@ -55,9 +55,16 @@ jobs:
       run: |
         cd mame
         echo "=== Searching for mame binary ==="
-        find . -name "mame*" -type f -executable 2>/dev/null | head -20
+        find . -name "mame*" -type f 2>/dev/null | head -20
+        find . -name "mame64*" -type f 2>/dev/null | head -20
+        # Try to find in build directory
+        ls -la build/ 2>/dev/null | head -20
+        ls -la build/projects/sdl/mame/gmake-linux/ 2>/dev/null | head -20
         # Copy to root for easy upload
-        MAME_BIN=$(find . -name "mame*" -type f -executable 2>/dev/null | head -1)
+        MAME_BIN=$(find . \( -name "mame" -o -name "mame64" \) -type f -executable 2>/dev/null | head -1)
+        if [ -z "$MAME_BIN" ]; then
+          MAME_BIN=$(find . -name "mame*" -type f -executable 2>/dev/null | head -1)
+        fi
         if [ -n "$MAME_BIN" ]; then
           cp "$MAME_BIN" ./mame_binary
           echo "Copied $MAME_BIN to ./mame_binary"
