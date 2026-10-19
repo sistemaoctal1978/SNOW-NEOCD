@@ -11,7 +11,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 90
 
     steps:
     - name: Checkout
@@ -46,45 +46,38 @@ jobs:
         mkdir -p roms/snowbros_mvs
         cp ${{ github.workspace }}/assets/sbros-1.41.full roms/snowbros_mvs/sbros-1.41
 
-    - name: Build MAME (full build - includes neogeo)
+    - name: Build MAME (neogeo driver only - no Qt needed)
       run: |
         cd mame
-        make REGENIE=1 -j$(nproc) 2>&1 | tee build.log
+        make SOURCES=src/mame/drivers/neogeo.cpp REGENIE=1 -j$(nproc) 2>&1 | tee build.log
 
-    - name: Find MAME binary
+    - name: Find and copy MAME binary
       run: |
         cd mame
         echo "=== Searching for mame binary ==="
-        find . -name "mame" -type f -executable 2>/dev/null | head -20
-        ls -la mame 2>/dev/null || echo "No mame in root"
-        ls -la build/ 2>/dev/null | head -20
+        find . -name "mame*" -type f -executable 2>/dev/null | head -20
+        # Copy to root for easy upload
+        MAME_BIN=$(find . -name "mame*" -type f -executable 2>/dev/null | head -1)
+        if [ -n "$MAME_BIN" ]; then
+          cp "$MAME_BIN" ./mame_binary
+          echo "Copied $MAME_BIN to ./mame_binary"
+          ls -la ./mame_binary
+        else
+          echo "ERROR: No mame binary found"
+          exit 1
+        fi
 
     - name: Verify build
       run: |
         cd mame
-        # Find the actual binary
-        MAME_BIN=$(find . -name "mame" -type f -executable 2>/dev/null | head -1)
-        if [ -z "$MAME_BIN" ]; then
-          echo "ERROR: mame binary not found"
-          exit 1
-        fi
-        echo "Found binary at: $MAME_BIN"
-        "$MAME_BIN" -listxml | grep -i snowbros_mvs || echo "DRIVER NOT FOUND"
+        ./mame_binary -listxml | grep -i snowbros_mvs || echo "DRIVER NOT FOUND"
 
     - name: Upload MAME binary
       if: success()
       uses: actions/upload-artifact@v4
       with:
         name: mame-snowbros-mvs
-        path: mame/mame
-        retention-days: 30
-
-    - name: Upload MAME binary (fallback)
-      if: success()
-      uses: actions/upload-artifact@v4
-      with:
-        name: mame-snowbros-mvs-fallback
-        path: mame/build/mame
+        path: mame/mame_binary
         retention-days: 30
 
     - name: Upload build log
