@@ -8,10 +8,19 @@ on:
       - '.github/workflows/build_snowbros.yml'
 
 jobs:
-  test:
+  build:
     runs-on: ubuntu-latest
+    timeout-minutes: 90
+
     steps:
     - name: Checkout
       uses: actions/checkout@v4
-    - name: Test
-      run: echo "Hello World"
+
+    - name: Setup dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y git build-essential python3 libsdl2-dev liblua5.3-dev libfontconfig1-dev libasound2-dev libpulse-dev libx11-dev libxext-dev libxinerama-dev libxi-dev libxrandr-dev libxrender-dev libudev-dev libdbus-1-dev libfreetype6-dev gcc g++ make pkg-config python3
+
+    - name: Clone MAME 0.268
+      run: |
+        git clone --depth 1 --branch mame0268 https://github.com/mamedev/mame.git mame
