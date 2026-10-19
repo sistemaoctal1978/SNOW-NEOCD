@@ -46,10 +46,10 @@ jobs:
         mkdir -p roms/snowbros_mvs
         cp ${{ github.workspace }}/assets/sbros-1.41.full roms/snowbros_mvs/sbros-1.41
 
-    - name: Build MAME (neogeo driver only - no Qt needed)
+    - name: Build MAME (neogeo driver only - path fix)
       run: |
         cd mame
-        make SOURCES=src/mame/drivers/neogeo.cpp REGENIE=1 -j$(nproc) 2>&1 | tee build.log
+        make SOURCES=drivers/neogeo.cpp REGENIE=1 -j$(nproc) 2>&1 | tee build.log
 
     - name: Find and copy MAME binary
       run: |
@@ -57,10 +57,8 @@ jobs:
         echo "=== Searching for mame binary ==="
         find . -name "mame*" -type f 2>/dev/null | head -20
         find . -name "mame64*" -type f 2>/dev/null | head -20
-        # Try to find in build directory
         ls -la build/ 2>/dev/null | head -20
         ls -la build/projects/sdl/mame/gmake-linux/ 2>/dev/null | head -20
-        # Copy to root for easy upload
         MAME_BIN=$(find . \( -name "mame" -o -name "mame64" \) -type f -executable 2>/dev/null | head -1)
         if [ -z "$MAME_BIN" ]; then
           MAME_BIN=$(find . -name "mame*" -type f -executable 2>/dev/null | head -1)
