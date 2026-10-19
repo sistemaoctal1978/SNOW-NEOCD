@@ -70,4 +70,4 @@ cp sbros-1.41 roms/snowbros_mvs/sbros-1.41  # C ROM 2MB
 |----------|-------|----------|
 | Attract | 3 colores/sprite | 1 color (naranja) |
 | Gameplay | Sprites completos | Naranja sólido |
-| Transiciones | Suaves | Glitches |
+| Transiciones | Suaves | Glitches |# Trigger workflow
